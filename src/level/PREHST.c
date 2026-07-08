@@ -1182,14 +1182,11 @@ extern void func_8015FC2C_CD4AC();
 
 INCLUDE_ASM("asm/nonmatchings/level/PREHST", prehst_boulder_OnUpdate);
 
-/* Near-match (200/200 instructions; all 40 diffs are the angle/r s0<->s1
- * allocation inversion — ours ranks `angle` above `r`, the original the
- * reverse. Third confirmed instance of this exact tie (func_80163F94,
- * prehst_ptera_OnCreate's product rotation, and here), invariant under
- * declaration order, `register`, ref-count and seeding changes — most
- * likely a KMC allocator difference, i.e. compiler-recreation territory
- * rather than source-level. Everything else matches, including the
- * spline gate, the 15x particle loop, and the smoke-def block copy.
+#if 0
+/* Near-match (200/200; all 40 diffs are the angle/r s0-s1 allocation
+ * inversion — third confirmed instance, see CLAUDE.md "angle/r allocation
+ * inversion". Longhand modulo (r - r/10*10) compiles byte-identical and
+ * does not flip it either. */
 void prehst_boulder_OnUpdate(Instance* instance, GameTracker* gameTracker) {
     extern int D_800EB8A0;
     int* data;
@@ -1244,7 +1241,7 @@ void prehst_boulder_OnUpdate(Instance* instance, GameTracker* gameTracker) {
         } while (i < 15);
     }
 }
-*/
+#endif
 
 void prehst_boulder_OnCollide(Instance* instance, GameTracker* gameTracker) {
     BSPTree* bsp;
