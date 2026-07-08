@@ -160,7 +160,24 @@ void rezop_simontv_OnCreate(Instance* instance, GameTracker* gameTracker) {
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_simontv_OnUpdate);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_simontv_OnCollide);
+void rezop_simontv_OnCollide(Instance* instance, GameTracker* gameTracker) {
+    BSPTree* bsp;
+    char* d;
+    char* d2;
+    short t;
+
+    bsp = instance->bspTree;
+    d = ((Instance*)instance->_100)->introData;
+    d2 = ((char**)d)[9];
+    if (bsp->_06 == 4 && bsp->instanceSpline == PlayerInstance && instance->_F4[0] == 0) {
+        if (*(int*)(d + 0xF4) == 0 || (t = *(short*)(d2 + 8)) != 1) {
+            *(int*)(d + 0xF4) = 1;
+            instance->_F4[1] = 1;
+        } else if (instance->_F4[1] != t) {
+            func_80050508(instance, 0xAE, 0, 0x64, 0xFA0);
+        }
+    }
+}
 
 void rezop_simon_OnCreate(Instance* instance, GameTracker* gameTracker) {
     char* data;
@@ -246,7 +263,19 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezcrnk_OnCollide);
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_snkplat_OnCreate);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_snkplat_OnUpdate);
+void rezop_snkplat_OnUpdate(Instance* instance, GameTracker* gameTracker) {
+    int d[2];
+    SVector dead; /* dead local — reproduces the original's 0x30-byte frame */
+
+    instance->_D0[2] += 0x20;
+    instance->_D0[0] = instance->position.x + (((func_8003A6AC(instance->_D0[2]) << 16) >> 16) * 0xF >> 6);
+    instance->_D0[1] = instance->position.y + (((func_8003A4E0(instance->_D0[2]) << 16) >> 16) * 0xF >> 6);
+    d[0] = instance->_D0[0] - instance->position.x;
+    d[1] = instance->_D0[1] - instance->position.y;
+    instance->rotation.x = d[0] >> 3;
+    instance->rotation.y = d[1] >> 3;
+    GenericProcess(instance, gameTracker);
+}
 
 void rezop_snkplat_OnCollide(Instance* instance, GameTracker* gameTracker) {
     BSPTree* bsp = instance->bspTree;
@@ -415,11 +444,42 @@ void rezop_rebug_OnCreate(Instance* instance, GameTracker* gameTracker) {
     instance->flags |= 0x400;
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rebug_OnUpdate);
+void rezop_rebug_OnUpdate(Instance* instance, GameTracker* gameTracker) {
+    int ox;
+    int oy;
+
+    if (instance->_F4[0] != 1) {
+        ox = instance->oldPos.x;
+        oy = instance->oldPos.y;
+        instance->rotation.z = ratan2(oy - instance->position.y, ox - instance->position.x) + 0x400;
+        func_8002DAF8(instance, -1);
+    } else if (instance->currentAnimFrame != ((short*)instance->object->animList[instance->currentModelAnim])[1] - 1) {
+        func_8002DAF8(instance, -1);
+    } else {
+        INSTANCE_PlainDeath(instance, 4, -1, 0);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rebug_OnCollide);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_iris_OnCreate);
+void rezop_iris_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    unsigned short* data;
+    int x;
+    int y;
+
+    data = ((unsigned short*)instance->object->data);
+    ((short*)&instance->_100)[1] = (short)data[0] / 2;
+    *(short*)&instance->_104 = -((short)data[0] / 2);
+    *(short*)&instance->_10E = data[3];
+    ((short*)&instance->_104)[1] = (short)data[1] / 2 + 0x140;
+    x = -0x140 - (short)data[1] / 2;
+    *(short*)&instance->_108 = x;
+    y = data[2];
+    x = -0x40;
+    *(short*)&instance->_10C = x;
+    ((short*)&instance->_F4[2])[1] = 0;
+    ((short*)&instance->_108)[1] = x - y;
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_iris_OnUpdate);
 
