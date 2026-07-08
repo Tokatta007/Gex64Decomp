@@ -1,7 +1,7 @@
 #include "common.h"
 
-#include "zlib/codes.h"
 #include "zlib/zlib.h"
+#include "zlib/codes.h"
 
 extern char D_801E0BC0;
 int inflate(z_stream* z, char* compressedDataStart, int compressedDataSize) {
@@ -32,7 +32,7 @@ int inflate(z_stream* z, char* compressedDataStart, int compressedDataSize) {
             z->next_in = &D_801E0BC0;
         }
         
-        if (inflate_blocks(z->state, z, -5) != 0)
+        if (inflate_blocks((inflate_blocks_state*)z->state, z, -5) != 0)
             break;
         
         if (isDone)
@@ -77,7 +77,14 @@ INCLUDE_ASM("asm/nonmatchings/zlib", inflate_codes);
 
 INCLUDE_ASM("asm/nonmatchings/zlib", huft_build);
 
-INCLUDE_ASM("asm/nonmatchings/zlib", inflate_trees_bits);
+extern unsigned int D_801DC830[];
+
+int inflate_trees_bits(unsigned int* c, unsigned int* bb, inflate_huft** tb, inflate_huft* hp) {
+    unsigned int hn;
+
+    hn = 0;
+    return huft_build(c, 19, 19, 0, 0, tb, bb, hp, &hn, D_801DC830);
+}
 
 INCLUDE_ASM("asm/nonmatchings/zlib", inflate_trees_dynamic);
 
