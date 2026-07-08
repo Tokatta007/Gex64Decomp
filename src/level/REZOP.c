@@ -3,6 +3,7 @@
 #include "level/REZOP.h"
 #include "INSTANCE.h"
 #include "OBTABLE.h"
+#include "SIGNAL.h"
 #include "types/intro/BTimer.h"
 #include "types/G2String.h"
 
@@ -259,7 +260,30 @@ void rezop_rezcrnk_OnUpdate(Instance* instance, GameTracker* gameTracker) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezcrnk_OnCollide);
+void rezop_rezcrnk_OnCollide(Instance* instance, GameTracker* gameTracker) {
+    BSPTree* bsp;
+    short* data;
+    int* sig;
+    short six;
+    int t;
+
+    bsp = instance->bspTree;
+    six = bsp->_06;
+    data = instance->introData;
+    if (six == 1 && bsp->instanceSpline == PlayerInstance && bsp->_0C[5] >= 6U && instance->_100 <= 0) {
+        instance->_100 = data[2];
+        sig = ((int**)data)[0];
+        if (sig != NULL) {
+            COLLIDE_HandleSignal(gameTracker->player, (BaseSignal*)(sig + 1), sig[0], 0);
+        }
+        t = instance->_F4[2];
+        instance->_F4[0] = six;
+        instance->flags2 |= 0x400000;
+        if (t < 0x180) {
+            instance->_F4[2] = t + 0x100;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_snkplat_OnCreate);
 
@@ -403,7 +427,27 @@ void rezop_mtntsht_OnUpdate(Instance* instance, GameTracker* gameTracker) {
     func_80047E64(instance, ((short*)&instance->_F4[2])[0]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_mtntsht_OnCollide);
+void rezop_mtntsht_OnCollide(Instance* instance, GameTracker* gameTracker) {
+    extern int D_801615AC_D9D1C;
+    extern int D_801615B0_D9D20;
+    BSPTree* bsp;
+    int* name;
+
+    bsp = instance->bspTree;
+    if (bsp->_06 == 1 && bsp->instanceSpline == gameTracker->player) {
+        if (!(gameTracker->gameFlags & 4)) {
+            func_8002275C(instance, gameTracker);
+        }
+        INSTANCE_PlainDeath(instance, 4, -1, 0);
+    } else if (bsp->instanceSpline == NULL) {
+        INSTANCE_PlainDeath(instance, 4, -1, 0);
+    } else {
+        name = ((int*)bsp->instanceSpline->object->parentName);
+        if (name[0] != D_801615AC_D9D1C || name[1] != D_801615B0_D9D20) {
+            INSTANCE_PlainDeath(instance, 4, -1, 0);
+        }
+    }
+}
 
 void rezop_rebggen_OnCreate(Instance* instance, GameTracker* gameTracker) {
     instance->flags |= 0x100000;
@@ -737,7 +781,7 @@ void rezop_btimer_OnUpdate(Instance* instance, GameTracker* gameTracker) {
         if (((gameTracker->player->_F4[2] & 0x600000) == 0x600000) && (instance->_F4[1] == 0)) {
             temp_s2[0] = (intro->missionTime - 1);
             if (intro->collectType == EBTIMER_COLLECTTYPE_CUTSCENE) {
-                SIGNAL_HandleSignal(PlayerInstance, intro->b + 4, 0);
+                SIGNAL_HandleSignal(PlayerInstance, (void*)(intro->b + 4), 0);
             }
             instance->_F4[1] = 1;
             PlayerInstance->_F4[2] &= ~0x400000;
