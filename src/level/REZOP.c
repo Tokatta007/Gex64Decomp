@@ -4,6 +4,7 @@
 #include "INSTANCE.h"
 #include "OBTABLE.h"
 #include "SIGNAL.h"
+#include "SPLINE.h"
 #include "types/intro/BTimer.h"
 #include "types/G2String.h"
 
@@ -612,6 +613,126 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", func_8015EAB0_D7220);
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", func_8015ECB8_D7428);
 
+#if 0
+/* Near-match (83/83; 20 diffs = block-local register naming in the two
+ * else-arm delta blocks — dx lands in a0 instead of v1 despite correct
+ * birth order; the RMW arms and the p = p->linked self-rotation match).
+ * Mutant smoke particle callback. */
+typedef struct MutantSpray_s {
+    int _00;
+    struct MutantSpray_s* linked;
+    int _08;
+    short _0C;
+    short _0E;
+    int _10;
+    int _14;
+    int _18;
+    unsigned short posX;
+    unsigned short posY;
+    unsigned short posZ;
+    short _22;
+    unsigned short _24;
+    short _26;
+    unsigned short _28;
+    short _2A;
+    unsigned short _2C;
+    short _2E;
+    unsigned short _30;
+    short _32;
+    unsigned short _34;
+    short _36;
+    unsigned short _38;
+    short _3A;
+    short _3C;
+    short _3E;
+    short _40;
+    short _42;
+    unsigned short _44;
+    unsigned short _46;
+    unsigned short _48;
+} MutantSpray;
+
+void func_8015ECB8_D7428(MutantSpray* p) {
+    func_80016894(p);
+    if (p->_0E >= 0xB) {
+        int x;
+        int y;
+        x = p->_24;
+        y = p->_28;
+        x = x - 4;
+        p->_24 = x;
+        x = p->_2C;
+        y = y + 4;
+        p->_28 = y;
+        y = p->_30;
+        x = x + 4;
+        p->_2C = x;
+        x = p->_34;
+        y = y - 4;
+        p->_30 = y;
+        y = p->_38;
+        x = x + 4;
+        p->_34 = x;
+        y = y + 4;
+        p->_38 = y;
+        p = p->linked;
+        if (p != NULL) {
+            x = p->_24;
+            y = p->_28;
+            x = x - 4;
+            p->_24 = x;
+            x = p->_2C;
+            y = y + 4;
+            p->_28 = y;
+            y = p->_30;
+            x = x - 4;
+            p->_2C = x;
+            x = p->_34;
+            y = y - 4;
+            p->_30 = y;
+            y = p->_38;
+            x = x + 4;
+            p->_34 = x;
+            y = y - 4;
+            p->_38 = y;
+        }
+    } else {
+        int x;
+        int dx;
+        int dy;
+        int dz;
+        int y;
+        x = p->posX;
+        dx = p->_44;
+        dy = p->_46;
+        dz = p->_48;
+        x = x + dx;
+        p->posX = x;
+        x = p->posY;
+        y = p->posZ;
+        x = x + dy;
+        y = y + dz;
+        p->posY = x;
+        p->posZ = y;
+        p = p->linked;
+        if (p != NULL) {
+            x = p->posX;
+            dx = p->_44;
+            dy = p->_46;
+            dz = p->_48;
+            x = x + dx;
+            p->posX = x;
+            x = p->posY;
+            y = p->posZ;
+            x = x + dy;
+            y = y + dz;
+            p->posY = x;
+            p->posZ = y;
+        }
+    }
+}
+#endif
+
 INCLUDE_RODATA("asm/nonmatchings/level/REZOP", D_80161590_D9D00);
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_mutant_OnUpdate);
@@ -790,7 +911,27 @@ void rezop_tvgurny_OnCreate(Instance* instance, GameTracker* gameTracker) {
     instance->_120 = (SCRIPT_CountFramesInSpline(instance) << 16) >> 16;
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_tvgurny_OnUpdate);
+void rezop_tvgurny_OnUpdate(Instance* instance, GameTracker* gameTracker) {
+    SVECTOR a;
+    SVECTOR b;
+    SVECTOR* pt;
+
+    instance->_11C += 1;
+    if (instance->_11C == 0x28) {
+        *(int*)&instance->_C0[0] = 0;
+    }
+    if (instance->_11C == instance->_120 - 0x28) {
+        b.x = instance->position.x;
+        b.y = instance->position.y;
+        b.z = instance->position.z;
+        pt = SplineGetLastPoint(instance->intro->multiSpline->positional, (SplineDef*)&instance->_F4[2]);
+        a = *pt;
+        COLLIDE_PointAndTerrain(gameTracker8->level->segmentAddress, &a, &b, instance);
+        SCRIPT_InstanceSplineSet(instance, (short)(instance->_120 - 0x28), (SplineDef*)&instance->_F4[2], (SplineDef*)&instance->_104, 0);
+        instance->_D0[0] += 1;
+    }
+    GenericProcess(instance, gameTracker);
+}
 
 void rezop_tvgurny_OnCollide(Instance* instance, GameTracker* gameTracker) {
     GenericCollide(instance, gameTracker);
