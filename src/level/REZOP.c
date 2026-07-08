@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "level/REZOP.h"
+#include "INSTANCE.h"
+#include "OBTABLE.h"
 #include "types/intro/BTimer.h"
 #include "types/G2String.h"
 
@@ -53,7 +55,26 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezrat_OnUpdate);
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezrat_OnCollide);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rrgen_OnCreate);
+void rezop_rrgen_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    char* data;
+    Object* obj;
+    Instance* birthed;
+
+    data = instance->introData;
+    obj = OBTABLE_FindObject("rrzap___");
+    instance->_F4[0] = 2;
+    instance->flags |= 0x100080;
+    if (*(short*)(data + 8) != 0) {
+        instance->_F4[0] = 1;
+    } else {
+        instance->_F4[2] = *(short*)(data + 6);
+    }
+    instance->_100 = 1;
+    instance->_104 = 1;
+    birthed = INSTANCE_BirthObject(instance, obj);
+    birthed->position.z += 0x180;
+    *(Instance**)&instance->_108 = birthed;
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rrgen_OnUpdate);
 
@@ -141,7 +162,15 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_simontv_OnUpdate);
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_simontv_OnCollide);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_simon_OnCreate);
+void rezop_simon_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    char* data;
+
+    data = instance->introData;
+    instance->_100 = (instance->intro->_04[0] - 2) / 2;
+    instance->_F4[0] = 0;
+    instance->_104 = 0;
+    *(int*)&instance->_114 = *(int*)(((short)(rand() % *(short*)(data + 0xA)) << 2) + *(int*)(data + 0xC));
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", func_8015B750_D3EC0);
 
@@ -266,7 +295,25 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_spotlit_OnUpdate);
 void rezop_spotlit_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_spnplat_OnCreate);
+void rezop_spnplat_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    int* data;
+    Intro* other;
+    Instance* birthed;
+
+    data = instance->introData;
+    if (!(data[0] & 2)) {
+        other = ((Intro*)data[1]);
+        data[0] |= 1;
+        other->flags |= 0x10;
+        birthed = INSTANCE_BirthObjectFromIntro(other);
+        data[2] = (int)birthed;
+        ((int*)birthed->introData)[0] |= 2;
+        OBTABLE_InstanceInit(birthed);
+        ((Instance**)birthed->introData)[2] = instance;
+    }
+    instance->_F4[2] = 1;
+    instance->_F4[0] = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_spnplat_OnUpdate);
 
@@ -337,7 +384,21 @@ INCLUDE_RODATA("asm/nonmatchings/level/REZOP", D_801615AC_D9D1C);
 
 INCLUDE_RODATA("asm/nonmatchings/level/REZOP", D_801615B0_D9D20);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rebggen_OnUpdate);
+void rezop_rebggen_OnUpdate(Instance* instance, GameTracker* gameTracker) {
+    Object* obj;
+    Instance* birthed;
+
+    if (instance->_F4[0] == 1) {
+        obj = OBTABLE_FindObject("rebug___");
+        birthed = INSTANCE_BirthObject(instance, obj);
+        if (birthed != NULL) {
+            birthed->rotation.z = (unsigned short)birthed->rotation.z + 0x400;
+            obj->oflags |= 0x2000;
+            birthed->introData = NULL;
+        }
+        instance->_F4[0] = 0;
+    }
+}
 
 void rezop_rebggen_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
