@@ -10,7 +10,22 @@ extern int D_80154834;
 void rezop_rrdoor_OnCreate(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rrdoor_OnUpdate);
+void rezop_rrdoor_OnUpdate(Instance* instance, GameTracker* gameTracker) {
+    int data;
+    int data2;
+    int off;
+
+    if (instance->_F4[0] == 1) {
+        data = instance->object->modelList[0]->_14;
+        off = instance->_F4[2] * 0xC;
+        if (*(int*)(off + data + 8) != *(int*)(data + 0x1E8)) {
+            *(int*)(off + data + 8) = *(int*)(data + 0x1E8);
+            data2 = instance->object->modelList[0]->_14;
+            *(int*)(off + data2 + 0x14) = *(int*)(data2 + 0x1F4);
+        }
+        instance->_F4[0] = 0;
+    }
+}
 
 void rezop_rrdoor_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
@@ -158,7 +173,16 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbot_OnUpdate);
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbot_OnCollide);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_crnkplt_OnCreate);
+void rezop_crnkplt_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    SVECTOR a;
+    SVECTOR b;
+
+    a.x = b.x = instance->position.x;
+    a.y = b.y = instance->position.y;
+    a.z = (unsigned short)instance->position.z - 0x100;
+    b.z = (unsigned short)instance->position.z + 0x100;
+    COLLIDE_PointAndTerrain(gameTracker8->level->segmentAddress, &a, &b, instance);
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_crnkplt_OnUpdate);
 
@@ -213,7 +237,20 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbull_OnUpdate);
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbull_OnCollide);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_srchlit_OnCreate);
+void rezop_srchlit_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    short* fc;
+    short* data;
+    short i;
+
+    fc = (short*)&instance->_F4[2];
+    data = instance->introData;
+    for (i = 0; i < gameTracker->level->_68; i++) {
+        if (*(int*)((char*)gameTracker->level->_6C + i * 12) == data[0]) {
+            fc[0] = i;
+        }
+    }
+    fc[1] = ((unsigned short*)data)[1];
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_srchlit_OnUpdate);
 
@@ -235,7 +272,30 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_spnplat_OnUpdate);
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_spnplat_OnCollide);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_mutant_OnCreate);
+void rezop_mutant_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    int* data;
+    int f;
+    int v;
+
+    data = instance->introData;
+    f = instance->flags;
+    if (f & 0x20000) {
+        if (instance->currentModelAnim == 0) {
+            instance->intro->flags |= 8;
+        }
+    } else {
+        instance->flags = f | 0x100000;
+        if (data == NULL || *data == 0) {
+            v = 0x384000;
+        } else {
+            v = *data;
+        }
+        instance->_F4[2] = v;
+        instance->currentModelAnim = 4;
+        instance->flags2 &= ~0x10;
+        instance->flags |= 0x10000;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", func_8015E950_D70C0);
 
