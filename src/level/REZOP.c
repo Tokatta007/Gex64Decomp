@@ -150,6 +150,54 @@ void rezop_tbplat_OnCollide(Instance* instance, GameTracker* gameTracker) {
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezfan_OnCreate);
 
+#if 0
+/* Near-match (62/62; 2 diffs = one adjacent store-load swap: our scheduler
+ * hoists the flags load above the _120 store inside the final block (the
+ * load's chain reaches the branch, so it always wins priority); KMC kept
+ * source order. No C-level dependence exists between the two provably
+ * distinct memory ops — KMC-scheduler class. */
+void rezop_rezfan_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    short* data;
+    int v;
+    int f;
+
+    data = instance->introData;
+    instance->_F4[0] = 0;
+    instance->flags |= 0x100000;
+    if (data[0] != 0) {
+        instance->_F4[0] = 1;
+    } else {
+        instance->_F4[2] = data[1];
+    }
+    instance->_100 = 0;
+    v = data[4];
+    if (v == 0) {
+        v = 0x118;
+    }
+    instance->_11C = v;
+    v = data[5];
+    if (v == 0) {
+        v = -0x118;
+    }
+    instance->_120 = v;
+    f = instance->flags;
+    if (f & 0x20000) {
+        if (instance->_104 != 0) {
+            func_800331BC(instance->_104);
+            instance->_104 = 0;
+        }
+    } else {
+        instance->flags = f | 0x10000;
+        instance->_104 = 0;
+        *(int*)&instance->_110 = 0;
+        *(int*)&instance->_10C = 0x64;
+        *(int*)&instance->_108 = (rand() & 0x3F) - 0x20;
+        *(int*)&instance->_114 = 0;
+        instance->_118 = 0;
+    }
+}
+#endif
+
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezfan_OnUpdate);
 
 void rezop_rezfan_OnCollide(Instance* instance, GameTracker* gameTracker) {
@@ -537,7 +585,19 @@ void rezop_tvgen_OnCreate(Instance* instance, GameTracker* gameTracker) {
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_tvgen_OnUpdate);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_tvgurny_OnCreate);
+void rezop_tvgurny_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    SVECTOR a;
+    SVECTOR b;
+
+    instance->flags |= 0x40000000;
+    a.x = instance->position.x;
+    a.y = instance->position.y;
+    b.x = (unsigned short)instance->position.x + (((func_8003A6AC(instance->intro->rotation.z + 0x400) << 16) >> 16) * 5 >> 4);
+    b.y = (unsigned short)instance->position.y + (((func_8003A4E0(instance->intro->rotation.z + 0x400) << 16) >> 16) * 5 >> 4);
+    a.z = b.z = instance->position.z;
+    COLLIDE_PointAndTerrain(gameTracker8->level->segmentAddress, &a, &b, instance);
+    instance->_120 = (SCRIPT_CountFramesInSpline(instance) << 16) >> 16;
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_tvgurny_OnUpdate);
 
