@@ -72,6 +72,34 @@ void rezop_tbbttn_OnCreate(Instance* instance, GameTracker* gameTracker) {
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_tbbttn_OnUpdate);
 
+#if 0
+/* Near-match (27/28): the target keeps an uncoalesced copy of the scale.z
+ * load (addu $v1,$v0) with the compare on the load register — the unpinnable
+ * copy class (no following reassignment exists to pin it; see CLAUDE.md
+ * rotation-lesson refinement). */
+void rezop_tbbttn_OnUpdate(Instance* instance, GameTracker* gameTracker) {
+    int x;
+    int t;
+    SVector dead; /* dead local — reproduces the original's 8-byte stack frame */
+
+    if (instance->_F4[0] == 1) {
+        instance->_F4[2] = instance->_F4[2] + 1;
+        if (instance->_F4[2] >= 0x5A) {
+            instance->_F4[0] = 2;
+            instance->_F4[2] = 0;
+        }
+    } else if (instance->_F4[0] == 2) {
+        x = instance->scale.z;
+        t = x;
+        if (x < 0x1000) {
+            instance->scale.z = t + 0x100;
+        } else {
+            instance->_F4[0] = 0;
+        }
+    }
+}
+#endif
+
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_tbbttn_OnCollide);
 
 void rezop_tbplat_OnCreate(Instance* instance, GameTracker* gameTracker) {
@@ -141,7 +169,25 @@ void rezop_crnkplt_OnCollide(Instance* instance, GameTracker* gameTracker) {
 void rezop_rezcrnk_OnCreate(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezcrnk_OnUpdate);
+void rezop_rezcrnk_OnUpdate(Instance* instance, GameTracker* gameTracker) {
+    int t;
+
+    if (instance->_F4[0] == 1) {
+        t = instance->_F4[2];
+        if (t > 0) {
+            instance->_F4[2] = t - 0x10;
+            if (instance->_F4[2] < 0) {
+                instance->_F4[2] = 0;
+            }
+        } else if (t == 0) {
+            instance->_F4[0] = 0;
+        }
+        instance->rotation.z = (unsigned short)instance->rotation.z + instance->_F4[2];
+    }
+    if (instance->_100 >= 0) {
+        instance->_100 = instance->_100 - 1;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezcrnk_OnCollide);
 
@@ -203,7 +249,11 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_mutant_OnUpdate);
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_mutant_OnCollide);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_mtntsht_OnCreate);
+void rezop_mtntsht_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    instance->initialPos = instance->position;
+    *(ROTATION*)&instance->intro->rotation = instance->rotation;
+    instance->flags |= 0x100000;
+}
 
 void rezop_mtntsht_OnUpdate(Instance* instance, GameTracker* gameTracker) {
     short dx;
@@ -566,4 +616,22 @@ void rezop_btimer_OnUpdate(Instance* instance, GameTracker* gameTracker) {
 void rezop_markey_OnCreate(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_markey_OnUpdate);
+void rezop_markey_OnUpdate(Instance* instance, GameTracker* gameTracker) {
+    extern int D_800E5CD8;
+    int* data;
+    char* q;
+    char v;
+    char w;
+
+    data = ((int*)instance->object->modelList[0]->_14);
+    v = D_800E5CD8 & 0x7F;
+    w = v + 0x7F;
+    q = ((char*)data[2]);
+    q[4] = w;
+    q[6] = v;
+    q[8] = w;
+    q = ((char*)data[5]);
+    q[4] = w;
+    q[6] = v;
+    q[8] = v;
+}
