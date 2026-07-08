@@ -24,7 +24,11 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rrspark_OnUpdate);
 void rezop_rrspark_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezrat_OnCreate);
+void rezop_rezrat_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    instance->_F4[0] = 0;
+    instance->flags |= 0x100400;
+    func_8004AAA8(instance, 0x18, 0);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/level/REZOP", D_80161530_D9CA0);
 
@@ -41,14 +45,23 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rrgen_OnUpdate);
 void rezop_rrgen_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rrzap_OnCreate);
+void rezop_rrzap_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    instance->_F4[2] = 0x20;
+    instance->flags |= 0x100080;
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rrzap_OnUpdate);
 
 void rezop_rrzap_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezplat_OnCreate);
+void rezop_rezplat_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    instance->currentTextureAnimFrame = 1;
+    instance->_104 = 7;
+    instance->flags |= 0x80;
+    *(int*)&instance->_108 = instance->rotation.y;
+    *(short*)&instance->_10C = instance->rotation.z;
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezplat_OnUpdate);
 
@@ -77,7 +90,9 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezfan_OnUpdate);
 void rezop_rezfan_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_simontv_OnCreate);
+void rezop_simontv_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    instance->_100 = instance->intro->_04[1];
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_simontv_OnUpdate);
 
@@ -106,7 +121,10 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_simon_OnUpdate);
 void rezop_simon_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbot_OnCreate);
+void rezop_rezbot_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    instance->_F4[2] = PlayerInstance->position.z + 0x282;
+    instance->currentModelAnim = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbot_OnUpdate);
 
@@ -138,7 +156,12 @@ void rezop_snkplat_OnCollide(Instance* instance, GameTracker* gameTracker) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbull_OnCreate);
+void rezop_rezbull_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    instance->_E0[1] = -0xF;
+    instance->_F4[0] = 0;
+    instance->_D0[2] = 0x3C;
+    *(int*)&instance->_108 = 0x3C;
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbull_OnUpdate);
 
@@ -151,7 +174,9 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_srchlit_OnUpdate);
 void rezop_srchlit_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_spotlit_OnCreate);
+void rezop_spotlit_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    *(short*)&instance->_F4[2] = (unsigned char)PlayerInstance->lightGroup;
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_spotlit_OnUpdate);
 
@@ -230,7 +255,10 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_iris_OnUpdate);
 void rezop_iris_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_tvgen_OnCreate);
+void rezop_tvgen_OnCreate(Instance* instance, GameTracker* gameTracker) {
+    instance->_F4[0] = 0;
+    instance->flags |= 0x100800;
+}
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_tvgen_OnUpdate);
 
