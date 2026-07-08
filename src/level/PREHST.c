@@ -544,7 +544,11 @@ typedef struct {
     unsigned short _52;
     unsigned short _54;
     unsigned short _56;
-    char _58[0x14];
+    int _58;
+    int _5C;
+    int _60;
+    int _64;
+    int _68;
     unsigned short frame;
 } VentSprayData;
 
@@ -1166,7 +1170,81 @@ INCLUDE_ASM("asm/nonmatchings/level/PREHST", func_8015F9A4_CD224);
 
 INCLUDE_ASM("asm/nonmatchings/level/PREHST", func_8015FC2C_CD4AC);
 
+typedef struct {
+    int _00;
+    int _04;
+    int _08;
+    int _0C;
+} SmokeDef;
+
+extern void func_8015F9A4_CD224();
+extern void func_8015FC2C_CD4AC();
+
 INCLUDE_ASM("asm/nonmatchings/level/PREHST", prehst_boulder_OnUpdate);
+
+/* Near-match (200/200 instructions; all 40 diffs are the angle/r s0<->s1
+ * allocation inversion — ours ranks `angle` above `r`, the original the
+ * reverse. Third confirmed instance of this exact tie (func_80163F94,
+ * prehst_ptera_OnCreate's product rotation, and here), invariant under
+ * declaration order, `register`, ref-count and seeding changes — most
+ * likely a KMC allocator difference, i.e. compiler-recreation territory
+ * rather than source-level. Everything else matches, including the
+ * spline gate, the 15x particle loop, and the smoke-def block copy.
+void prehst_boulder_OnUpdate(Instance* instance, GameTracker* gameTracker) {
+    extern int D_800EB8A0;
+    int* data;
+    Model* model;
+    int m14;
+    int r;
+    int c;
+    short angle;
+    int i;
+    VentSprayData* p;
+    SVECTOR vel;
+    SVECTOR acc;
+    SVECTOR pos;
+
+    data = *(int**)&instance->_114;
+    if (SCRIPT_InstanceSplineProcess(instance, (SplineDef*)&instance->_F4[2], (SplineDef*)&instance->_104, 0, 1) << 16 > 0) {
+        INSTANCE_PlainDeath(instance, 5, -1, 0);
+    }
+    if (data[2] > *(int*)&instance->_10C && *(short*)&instance->_F4[2] + 1 == ((int**)data)[3][*(int*)&instance->_10C]) {
+        func_8004AAA8(instance, 0x26, 0);
+        i = 0;
+        *(int*)&instance->_10C = *(int*)&instance->_10C + 1;
+        do {
+            if (*(short*)&instance->object->_08 >= 2) {
+                model = instance->object->modelList[1];
+            } else {
+                model = instance->object->modelList[0];
+            }
+            m14 = model->_14;
+            pos.x = instance->position.x;
+            pos.y = instance->position.y;
+            pos.z = (unsigned short)instance->position.z - 0x12C;
+            angle = rand() % 0x1000;
+            r = rand();
+            c = func_8003A6AC(angle);
+            vel.x = (r % 10 + 0x28) * ((c << 16) >> 16) >> 12;
+            r = rand();
+            c = func_8003A4E0(angle);
+            vel.y = (r % 10 + 0x28) * ((c << 16) >> 16) >> 12;
+            acc.y = -1;
+            acc.z = -5;
+            acc.x = 0;
+            vel.z = rand() % 20 + 0x19;
+            p = ((VentSprayData*)func_80017138(instance, m14, &pos, &vel, &acc, D_800EB8A0, func_8015F9A4_CD224, func_8015FC2C_CD4AC, 0x19));
+            if (p != NULL && model->_20 != 0) {
+                p->flags |= 4;
+                *(SmokeDef*)&p->_58 = *(SmokeDef*)p->next;
+                p->_68 = model->_20 + 4;
+                p->frame = rand();
+            }
+            i++;
+        } while (i < 15);
+    }
+}
+*/
 
 void prehst_boulder_OnCollide(Instance* instance, GameTracker* gameTracker) {
     BSPTree* bsp;
