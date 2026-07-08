@@ -372,7 +372,33 @@ void rezop_rezbull_OnCreate(Instance* instance, GameTracker* gameTracker) {
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbull_OnUpdate);
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbull_OnCollide);
+void rezop_rezbull_OnCollide(Instance* instance, GameTracker* gameTracker) {
+    extern int D_800EB8A0;
+    BSPTree* bsp;
+    SVECTOR out;
+    int px;
+
+    bsp = instance->bspTree;
+    if (bsp->_06 == 1 && bsp->instanceSpline == gameTracker->player
+        && bsp->_0C[5] >= 6U && instance->_F4[0] != 5) {
+        px = instance->position.x;
+        instance->_F4[2] = (ratan2(instance->position.y - PlayerInstance->position.y,
+                                   px - PlayerInstance->position.x) << 16) >> 16;
+        instance->_100 = 0x20;
+        instance->_F4[0] = 4;
+    } else if (bsp->_06 == 2) {
+        if (instance->_F4[0] == bsp->_06) {
+            func_8004AAE4(bsp, &out, gameTracker);
+            if (out.z >= 0xED9) {
+                *(Instance**)&instance->_104 = bsp->instanceSpline;
+            }
+        }
+    } else if (bsp->_06 == 3 && (*(unsigned short*)&bsp->_0C[6] & 8)) {
+        instance->position.z = (unsigned short)instance->position.z + 0x500;
+        func_80017598(instance, 0, 0, 0, D_800EB8A0, 0, 0);
+        INSTANCE_KillInstance(instance);
+    }
+}
 
 void rezop_srchlit_OnCreate(Instance* instance, GameTracker* gameTracker) {
     short* fc;
@@ -642,7 +668,39 @@ void rezop_tvgen_OnCreate(Instance* instance, GameTracker* gameTracker) {
     instance->flags |= 0x100800;
 }
 
-INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_tvgen_OnUpdate);
+void rezop_tvgen_OnUpdate(Instance* instance, GameTracker* gameTracker) {
+    char* intro;
+    Object* obj;
+    Instance* birthed;
+    int v;
+
+    intro = instance->introData;
+    obj = OBTABLE_FindObject(intro + 8);
+    if (intro == NULL || obj == NULL) {
+        INSTANCE_KillInstance(instance);
+    } else if (instance->_F4[0] == 1) {
+        instance->_F4[2] = instance->_F4[2] + 1;
+        if (instance->_F4[2] == ((int*)intro)[1]) {
+            v = ((int*)intro)[0];
+            instance->_F4[0] = 0;
+            instance->_F4[2] = v;
+        }
+    } else {
+        instance->_F4[2] += 1;
+        if ((unsigned int)gameTracker8->_0051[0x14] % (unsigned int)((int*)intro)[0] == 0) {
+            instance->_F4[2] = 0;
+            birthed = INSTANCE_BirthObject(instance, obj);
+            if (birthed != NULL) {
+                obj->oflags |= 0x2000;
+                birthed->introData = NULL;
+                if ((instance->object->oflags & 0x400) && (((unsigned short*)intro)[8] & 4) && instance->_100 == 0) {
+                    instance->_100 = 1;
+                    SCRIPT_InstanceSplineSet(birthed, ((short*)intro)[3], 0, 0, 0);
+                }
+            }
+        }
+    }
+}
 
 void rezop_tvgurny_OnCreate(Instance* instance, GameTracker* gameTracker) {
     SVECTOR a;
