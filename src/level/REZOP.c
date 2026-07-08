@@ -74,18 +74,18 @@ void rezop_rezrat_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
 void rezop_rrgen_OnCreate(Instance* instance, GameTracker* gameTracker) {
-    char* data;
+    char* intro;
     Object* obj;
     Instance* birthed;
 
-    data = instance->introData;
+    intro = instance->introData;
     obj = OBTABLE_FindObject("rrzap___");
     instance->_F4[0] = 2;
     instance->flags |= 0x100080;
-    if (*(short*)(data + 8) != 0) {
+    if (*(short*)(intro + 8) != 0) {
         instance->_F4[0] = 1;
     } else {
-        instance->_F4[2] = *(short*)(data + 6);
+        instance->_F4[2] = *(short*)(intro + 6);
     }
     instance->_100 = 1;
     instance->_104 = 1;
@@ -150,34 +150,6 @@ void rezop_tbbttn_OnCreate(Instance* instance, GameTracker* gameTracker) {
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_tbbttn_OnUpdate);
 
-#if 0
-/* Near-match (27/28): the target keeps an uncoalesced copy of the scale.z
- * load (addu $v1,$v0) with the compare on the load register — the unpinnable
- * copy class (no following reassignment exists to pin it; see CLAUDE.md
- * rotation-lesson refinement). */
-void rezop_tbbttn_OnUpdate(Instance* instance, GameTracker* gameTracker) {
-    int x;
-    int t;
-    SVector dead; /* dead local — reproduces the original's 8-byte stack frame */
-
-    if (instance->_F4[0] == 1) {
-        instance->_F4[2] = instance->_F4[2] + 1;
-        if (instance->_F4[2] >= 0x5A) {
-            instance->_F4[0] = 2;
-            instance->_F4[2] = 0;
-        }
-    } else if (instance->_F4[0] == 2) {
-        x = instance->scale.z;
-        t = x;
-        if (x < 0x1000) {
-            instance->scale.z = t + 0x100;
-        } else {
-            instance->_F4[0] = 0;
-        }
-    }
-}
-#endif
-
 void rezop_tbbttn_OnCollide(Instance* instance, GameTracker* gameTracker) {
     BSPTree* bsp;
     short six;
@@ -212,54 +184,6 @@ void rezop_tbplat_OnCollide(Instance* instance, GameTracker* gameTracker) {
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezfan_OnCreate);
 
-#if 0
-/* Near-match (62/62; 2 diffs = one adjacent store-load swap: our scheduler
- * hoists the flags load above the _120 store inside the final block (the
- * load's chain reaches the branch, so it always wins priority); KMC kept
- * source order. No C-level dependence exists between the two provably
- * distinct memory ops — KMC-scheduler class. */
-void rezop_rezfan_OnCreate(Instance* instance, GameTracker* gameTracker) {
-    short* data;
-    int v;
-    int f;
-
-    data = instance->introData;
-    instance->_F4[0] = 0;
-    instance->flags |= 0x100000;
-    if (data[0] != 0) {
-        instance->_F4[0] = 1;
-    } else {
-        instance->_F4[2] = data[1];
-    }
-    instance->_100 = 0;
-    v = data[4];
-    if (v == 0) {
-        v = 0x118;
-    }
-    instance->_11C = v;
-    v = data[5];
-    if (v == 0) {
-        v = -0x118;
-    }
-    instance->_120 = v;
-    f = instance->flags;
-    if (f & 0x20000) {
-        if (instance->_104 != 0) {
-            func_800331BC(instance->_104);
-            instance->_104 = 0;
-        }
-    } else {
-        instance->flags = f | 0x10000;
-        instance->_104 = 0;
-        *(int*)&instance->_110 = 0;
-        *(int*)&instance->_10C = 0x64;
-        *(int*)&instance->_108 = (rand() & 0x3F) - 0x20;
-        *(int*)&instance->_114 = 0;
-        instance->_118 = 0;
-    }
-}
-#endif
-
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezfan_OnUpdate);
 
 void rezop_rezfan_OnCollide(Instance* instance, GameTracker* gameTracker) {
@@ -291,13 +215,13 @@ void rezop_simontv_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
 void rezop_simon_OnCreate(Instance* instance, GameTracker* gameTracker) {
-    char* data;
+    char* intro;
 
-    data = instance->introData;
+    intro = instance->introData;
     instance->_100 = (instance->intro->_04[0] - 2) / 2;
     instance->_F4[0] = 0;
     instance->_104 = 0;
-    *(int*)&instance->_114 = *(int*)(((short)(rand() % *(short*)(data + 0xA)) << 2) + *(int*)(data + 0xC));
+    *(int*)&instance->_114 = *(int*)(((short)(rand() % *(short*)(intro + 0xA)) << 2) + *(int*)(intro + 0xC));
 }
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", func_8015B750_D3EC0);
@@ -343,58 +267,6 @@ void rezop_crnkplt_OnCreate(Instance* instance, GameTracker* gameTracker) {
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_crnkplt_OnUpdate);
 
-#if 0
-/* Near-match (68/72). The descent section matches (x=1 rotation, inline
- * duplicated intro-z, operand-swapped condition); the min-clamp region
- * keeps two register copies (position.z into t2, plus a select copy) that
- * our cse folds — unpinnable-copy class. */
-void rezop_crnkplt_OnUpdate(Instance* instance, GameTracker* gameTracker) {
-    short* data;
-    int* sig;
-    int x;
-    int fc2;
-    int t0v;
-    int v;
-    int pzsum;
-    int izsum;
-    SVector dead[3]; /* dead local — reproduces the original's 0x38-byte frame */
-
-    x = 1;
-    data = instance->introData;
-    if (instance->_F4[0] != x) {
-        fc2 = instance->_F4[2];
-        t0v = fc2 - 0x800;
-        if (instance->position.z + (t0v >> 12) > instance->intro->position.z - 0x180) {
-            if (fc2 >= -0x7FFF) {
-                instance->_F4[2] = t0v;
-            }
-        } else {
-            instance->position.z = instance->intro->position.z - 0x180;
-            instance->_F4[0] = x;
-            instance->_F4[2] = 0;
-        }
-        v = instance->position.z;
-        pzsum = instance->position.z + (instance->_F4[2] >> 12);
-        izsum = data[0] + instance->intro->position.z;
-        if (izsum < pzsum) {
-            v = izsum;
-        } else {
-            v = pzsum;
-        }
-        instance->position.z = v;
-    }
-    sig = instance->intro->_2C;
-    if (sig != NULL && *sig == 1) {
-        if (instance->_F4[2] <= 0xFFFF) {
-            instance->_F4[2] = instance->_F4[2] + 0x10000;
-        }
-        instance->_F4[0] = 0;
-        instance->intro->_2C = NULL;
-    }
-    GenericProcess(instance, gameTracker);
-}
-#endif
-
 void rezop_crnkplt_OnCollide(Instance* instance, GameTracker* gameTracker) {
     GenericCollide(instance, gameTracker);
 }
@@ -424,17 +296,17 @@ void rezop_rezcrnk_OnUpdate(Instance* instance, GameTracker* gameTracker) {
 
 void rezop_rezcrnk_OnCollide(Instance* instance, GameTracker* gameTracker) {
     BSPTree* bsp;
-    short* data;
+    short* intro;
     int* sig;
     short six;
     int t;
 
     bsp = instance->bspTree;
     six = bsp->_06;
-    data = instance->introData;
+    intro = instance->introData;
     if (six == 1 && bsp->instanceSpline == PlayerInstance && bsp->_0C[5] >= 6U && instance->_100 <= 0) {
-        instance->_100 = data[2];
-        sig = ((int**)data)[0];
+        instance->_100 = intro[2];
+        sig = ((int**)intro)[0];
         if (sig != NULL) {
             COLLIDE_HandleSignal(gameTracker->player, (BaseSignal*)(sig + 1), sig[0], 0);
         }
@@ -448,12 +320,12 @@ void rezop_rezcrnk_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
 void rezop_snkplat_OnCreate(Instance* instance, GameTracker* gameTracker) {
-    short* data;
+    short* intro;
     int* d;
     SVECTOR a;
     SVECTOR b;
 
-    data = instance->introData;
+    intro = instance->introData;
     instance->flags |= 0x100000;
     a.x = b.x = instance->position.x;
     a.y = b.y = instance->position.y;
@@ -461,8 +333,8 @@ void rezop_snkplat_OnCreate(Instance* instance, GameTracker* gameTracker) {
     a.z = instance->position.z;
     b.z = (unsigned short)instance->position.z + 0x300;
     COLLIDE_PointAndTerrain(gameTracker8->level->segmentAddress, &a, &b, instance);
-    if (data != NULL) {
-        instance->_D0[2] = data[0];
+    if (intro != NULL) {
+        instance->_D0[2] = intro[0];
     } else {
         instance->_D0[2] = 0;
     }
@@ -504,17 +376,17 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_rezbull_OnCollide);
 
 void rezop_srchlit_OnCreate(Instance* instance, GameTracker* gameTracker) {
     short* fc;
-    short* data;
+    short* intro;
     short i;
 
     fc = (short*)&instance->_F4[2];
-    data = instance->introData;
+    intro = instance->introData;
     for (i = 0; i < gameTracker->level->_68; i++) {
-        if (*(int*)((char*)gameTracker->level->_6C + i * 12) == data[0]) {
+        if (*(int*)((char*)gameTracker->level->_6C + i * 12) == intro[0]) {
             fc[0] = i;
         }
     }
-    fc[1] = ((unsigned short*)data)[1];
+    fc[1] = ((unsigned short*)intro)[1];
 }
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_srchlit_OnUpdate);
@@ -532,17 +404,17 @@ void rezop_spotlit_OnCollide(Instance* instance, GameTracker* gameTracker) {
 }
 
 void rezop_spnplat_OnCreate(Instance* instance, GameTracker* gameTracker) {
-    int* data;
+    int* intro;
     Intro* other;
     Instance* birthed;
 
-    data = instance->introData;
-    if (!(data[0] & 2)) {
-        other = ((Intro*)data[1]);
-        data[0] |= 1;
+    intro = instance->introData;
+    if (!(intro[0] & 2)) {
+        other = ((Intro*)intro[1]);
+        intro[0] |= 1;
         other->flags |= 0x10;
         birthed = INSTANCE_BirthObjectFromIntro(other);
-        data[2] = (int)birthed;
+        intro[2] = (int)birthed;
         ((int*)birthed->introData)[0] |= 2;
         OBTABLE_InstanceInit(birthed);
         ((Instance**)birthed->introData)[2] = instance;
@@ -554,11 +426,11 @@ void rezop_spnplat_OnCreate(Instance* instance, GameTracker* gameTracker) {
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", rezop_spnplat_OnUpdate);
 
 void rezop_spnplat_OnCollide(Instance* instance, GameTracker* gameTracker) {
-    int* data;
+    int* intro;
     BSPTree* bsp;
     Instance* other;
 
-    data = instance->introData;
+    intro = instance->introData;
     bsp = instance->bspTree;
     if ((unsigned int)(instance->_F4[0] - 3) >= 2U) {
         if (bsp->instanceSpline == gameTracker->player) {
@@ -570,24 +442,24 @@ void rezop_spnplat_OnCollide(Instance* instance, GameTracker* gameTracker) {
             instance->position.y = (unsigned short)instance->position.y + ((unsigned short*)bsp)[0x2A/2] * 2;
             instance->position.z = (unsigned short)instance->position.z + ((unsigned short*)bsp)[0x2C/2] * 2;
             COLLIDE_UpdateAllTransforms(instance, ((SVECTOR*)&((unsigned short*)bsp)[0x14]), gameTracker);
-            other = ((Instance*)data[2]);
+            other = ((Instance*)intro[2]);
             if (other->_F4[2] == 1) {
                 other->_F4[2] = 2;
             } else {
                 other->_F4[2] = 1;
             }
-            other = ((Instance*)data[2]);
+            other = ((Instance*)intro[2]);
             other->_F4[0] = other->_F4[2];
         }
     }
 }
 
 void rezop_mutant_OnCreate(Instance* instance, GameTracker* gameTracker) {
-    int* data;
+    int* intro;
     int f;
     int v;
 
-    data = instance->introData;
+    intro = instance->introData;
     f = instance->flags;
     if (f & 0x20000) {
         if (instance->currentModelAnim == 0) {
@@ -595,10 +467,10 @@ void rezop_mutant_OnCreate(Instance* instance, GameTracker* gameTracker) {
         }
     } else {
         instance->flags = f | 0x100000;
-        if (data == NULL || *data == 0) {
+        if (intro == NULL || *intro == 0) {
             v = 0x384000;
         } else {
-            v = *data;
+            v = *intro;
         }
         instance->_F4[2] = v;
         instance->currentModelAnim = 4;
@@ -612,126 +484,6 @@ INCLUDE_ASM("asm/nonmatchings/level/REZOP", func_8015E950_D70C0);
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", func_8015EAB0_D7220);
 
 INCLUDE_ASM("asm/nonmatchings/level/REZOP", func_8015ECB8_D7428);
-
-#if 0
-/* Near-match (83/83; 20 diffs = block-local register naming in the two
- * else-arm delta blocks — dx lands in a0 instead of v1 despite correct
- * birth order; the RMW arms and the p = p->linked self-rotation match).
- * Mutant smoke particle callback. */
-typedef struct MutantSpray_s {
-    int _00;
-    struct MutantSpray_s* linked;
-    int _08;
-    short _0C;
-    short _0E;
-    int _10;
-    int _14;
-    int _18;
-    unsigned short posX;
-    unsigned short posY;
-    unsigned short posZ;
-    short _22;
-    unsigned short _24;
-    short _26;
-    unsigned short _28;
-    short _2A;
-    unsigned short _2C;
-    short _2E;
-    unsigned short _30;
-    short _32;
-    unsigned short _34;
-    short _36;
-    unsigned short _38;
-    short _3A;
-    short _3C;
-    short _3E;
-    short _40;
-    short _42;
-    unsigned short _44;
-    unsigned short _46;
-    unsigned short _48;
-} MutantSpray;
-
-void func_8015ECB8_D7428(MutantSpray* p) {
-    func_80016894(p);
-    if (p->_0E >= 0xB) {
-        int x;
-        int y;
-        x = p->_24;
-        y = p->_28;
-        x = x - 4;
-        p->_24 = x;
-        x = p->_2C;
-        y = y + 4;
-        p->_28 = y;
-        y = p->_30;
-        x = x + 4;
-        p->_2C = x;
-        x = p->_34;
-        y = y - 4;
-        p->_30 = y;
-        y = p->_38;
-        x = x + 4;
-        p->_34 = x;
-        y = y + 4;
-        p->_38 = y;
-        p = p->linked;
-        if (p != NULL) {
-            x = p->_24;
-            y = p->_28;
-            x = x - 4;
-            p->_24 = x;
-            x = p->_2C;
-            y = y + 4;
-            p->_28 = y;
-            y = p->_30;
-            x = x - 4;
-            p->_2C = x;
-            x = p->_34;
-            y = y - 4;
-            p->_30 = y;
-            y = p->_38;
-            x = x + 4;
-            p->_34 = x;
-            y = y - 4;
-            p->_38 = y;
-        }
-    } else {
-        int x;
-        int dx;
-        int dy;
-        int dz;
-        int y;
-        x = p->posX;
-        dx = p->_44;
-        dy = p->_46;
-        dz = p->_48;
-        x = x + dx;
-        p->posX = x;
-        x = p->posY;
-        y = p->posZ;
-        x = x + dy;
-        y = y + dz;
-        p->posY = x;
-        p->posZ = y;
-        p = p->linked;
-        if (p != NULL) {
-            x = p->posX;
-            dx = p->_44;
-            dy = p->_46;
-            dz = p->_48;
-            x = x + dx;
-            p->posX = x;
-            x = p->posY;
-            y = p->posZ;
-            x = x + dy;
-            y = y + dz;
-            p->posY = x;
-            p->posZ = y;
-        }
-    }
-}
-#endif
 
 INCLUDE_RODATA("asm/nonmatchings/level/REZOP", D_80161590_D9D00);
 
@@ -788,10 +540,8 @@ void rezop_mtntsht_OnUpdate(Instance* instance, GameTracker* gameTracker) {
 }
 
 void rezop_mtntsht_OnCollide(Instance* instance, GameTracker* gameTracker) {
-    extern int D_801615AC_D9D1C;
-    extern int D_801615B0_D9D20;
+    extern char D_801615AC_D9D1C[];
     BSPTree* bsp;
-    int* name;
 
     bsp = instance->bspTree;
     if (bsp->_06 == 1 && bsp->instanceSpline == gameTracker->player) {
@@ -801,11 +551,8 @@ void rezop_mtntsht_OnCollide(Instance* instance, GameTracker* gameTracker) {
         INSTANCE_PlainDeath(instance, 4, -1, 0);
     } else if (bsp->instanceSpline == NULL) {
         INSTANCE_PlainDeath(instance, 4, -1, 0);
-    } else {
-        name = ((int*)bsp->instanceSpline->object->parentName);
-        if (name[0] != D_801615AC_D9D1C || name[1] != D_801615B0_D9D20) {
-            INSTANCE_PlainDeath(instance, 4, -1, 0);
-        }
+    } else if (G2String_Compare_NEQ(bsp->instanceSpline->object->parentName, D_801615AC_D9D1C)) {
+        INSTANCE_PlainDeath(instance, 4, -1, 0);
     }
 }
 
