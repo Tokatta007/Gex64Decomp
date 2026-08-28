@@ -584,7 +584,7 @@ void func_8015D780_84960(Instance* instance, GameTracker* gameTracker);
 
 void circuit_follow_OnUpdate(Instance* instance, GameTracker* gameTracker) {
     int state;
-    int* v;
+    int* intro;
 
     if (instance->intro->flags & 0x80) {
         instance->flags &= ~0x400;
@@ -599,10 +599,10 @@ void circuit_follow_OnUpdate(Instance* instance, GameTracker* gameTracker) {
         func_8015D780_84960(instance, gameTracker);
     } else if (state == -1) {
         if (func_800257B4(gameTracker->player) != 0) {
-            v = ((int*)instance->introData);
-            if (v != 0 && v[0] == 3) {
-                if (v[3] != 0) {
-                    SIGNAL_HandleSignal(instance, v[3] + 4, 0);
+            intro = ((int*)instance->introData);
+            if (intro != 0 && intro[0] == 3) {
+                if (intro[3] != 0) {
+                    SIGNAL_HandleSignal(instance, intro[3] + 4, 0);
                 }
             }
             instance->currentMainState = 0;
@@ -658,7 +658,7 @@ void func_8015D7F0_849D0(Instance* instance) {
     Intro** v1;
     Instance* obj;
     SVECTOR* pt;
-    int spline2;
+    Spline* spline2;
 
     v1 = (Intro**)instance->intro->_04 + 1;
     if (v1[0]->multiSpline != NULL) {
@@ -669,15 +669,15 @@ void func_8015D7F0_849D0(Instance* instance) {
                 INSTANCE_InsertInstanceWithFlagsCleared(obj, 0xF000);
             }
             obj->work4 = 0;
-            pt = SplineGetFirstPoint(((Spline**)v1[0]->multiSpline)[0], (SplineDef*)&obj->work0);
+            pt = SplineGetFirstPoint(v1[0]->multiSpline->positional, (SplineDef*)&obj->work0);
             if (pt != NULL) {
                 obj->position.x = pt->x;
                 obj->position.y = pt->y;
                 obj->position.z = pt->z;
             }
-            spline2 = ((int*)v1[0]->multiSpline)[0x8/4];
+            spline2 = v1[0]->multiSpline->scaling;
             if (spline2 != 0) {
-                pt = SplineGetFirstPoint((Spline*)spline2, (SplineDef*)&obj->work2);
+                pt = SplineGetFirstPoint(spline2, (SplineDef*)&obj->work2);
                 if (pt != NULL) {
                     obj->scale.x = pt->x;
                     obj->scale.y = pt->y;
@@ -701,7 +701,7 @@ void circuit_pball_OnCollide(Instance* instance, GameTracker* gameTracker) {
 void func_8015DB80_84D60(Instance* instance) {
     int* d;
     int* sd;
-    int* intro2;
+    int* intro;
     int* skip;
     unsigned short* len;
     Intro** cur;
@@ -718,13 +718,13 @@ void func_8015DB80_84D60(Instance* instance) {
     sum = 0;
     n = d[0] - 1;
     if (((Intro**)d)[1]->multiSpline != 0) {
-        sd = ((int**)((Intro**)d)[1]->multiSpline)[0];
-        intro2 = ((int*)((Intro**)d)[2]->instance->introData);
-        t2 = intro2[0];
+        sd = (int*)((Intro**)d)[1]->multiSpline->positional;
+        intro = ((int*)((Intro**)d)[2]->instance->introData);
+        t2 = intro[0];
         len = ((unsigned short**)sd)[0];
         cur = ((Intro**)(d + 2));
         if (t2 != 0) {
-            skip = intro2 + 4;
+            skip = intro + 4;
         }
         frame = 0;
         j = 0;

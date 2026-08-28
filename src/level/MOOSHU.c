@@ -326,39 +326,39 @@ INCLUDE_RODATA("asm/nonmatchings/level/MOOSHU", D_8015DDFC_C677C);
 INCLUDE_RODATA("asm/nonmatchings/level/MOOSHU", D_8015DE08_C6788);
 
 void func_8015B8B0_C4230(Instance* instance, GameTracker* gameTracker) {
-    Intro* intro;
+    short* data;
     Object* obj;
     Instance* born;
     short count;
 
-    intro = instance->object->data;
+    data = (short*)instance->object->data;
     obj = OBTABLE_FindObject("mooelec_");
-    if (((short*)intro)[0xE / 2] != 3 && (count = ((short*)intro)[6 / 2], count > 0)) {
-        ((short*)intro)[6 / 2] = count - 1;
-        if (((int*)intro)[0x1C / 4] == 0) {
+    if (data[0xE / 2] != 3 && (count = data[6 / 2], count > 0)) {
+        data[6 / 2] = count - 1;
+        if (((int*)data)[0x1C / 4] == 0) {
             if (obj != 0) {
                 born = INSTANCE_BirthObject(instance, obj);
                 if (born != 0) {
-                    ((int*)intro)[0x1C / 4] = (int)born;
+                    ((int*)data)[0x1C / 4] = (int)born;
                     instance->currentModel = 1;
                     born->flags |= 0x100400;
                 }
             }
-            if (((int*)intro)[0x1C / 4] == 0) {
+            if (((int*)data)[0x1C / 4] == 0) {
                 goto skip;
             }
         }
-        ((Instance*)((int*)intro)[0x1C / 4])->currentModelAnim = instance->currentModelAnim;
-        ((Instance*)((int*)intro)[0x1C / 4])->currentAnimFrame = instance->currentAnimFrame;
+        ((Instance*)((int*)data)[0x1C / 4])->currentModelAnim = instance->currentModelAnim;
+        ((Instance*)((int*)data)[0x1C / 4])->currentAnimFrame = instance->currentAnimFrame;
 skip:
-        if (((short*)intro)[6 / 2] <= 0) {
-            func_8015B75C_C40DC(instance, intro);
+        if (data[6 / 2] <= 0) {
+            func_8015B75C_C40DC(instance, data);
             return;
         }
         instance->currentModelAnim = 3;
         instance->currentAnimFrame = 0;
         instance->flags2 &= ~0x10;
-        ((short*)intro)[0xE / 2] = 3;
+        data[0xE / 2] = 3;
     }
 }
 
