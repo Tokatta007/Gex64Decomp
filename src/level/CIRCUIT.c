@@ -700,10 +700,10 @@ void circuit_pball_OnCollide(Instance* instance, GameTracker* gameTracker) {
 
 void func_8015DB80_84D60(Instance* instance) {
     int* d;
-    int* sd;
+    Spline* spline;
     int* intro;
     int* skip;
-    unsigned short* len;
+    SplineKey* splineKey;
     Intro** cur;
     int t2;
     int n;
@@ -718,10 +718,10 @@ void func_8015DB80_84D60(Instance* instance) {
     sum = 0;
     n = d[0] - 1;
     if (((Intro**)d)[1]->multiSpline != 0) {
-        sd = (int*)((Intro**)d)[1]->multiSpline->positional;
+        spline = ((Intro**)d)[1]->multiSpline->positional;
         intro = ((int*)((Intro**)d)[2]->instance->introData);
         t2 = intro[0];
-        len = ((unsigned short**)sd)[0];
+        splineKey = spline->key;
         cur = ((Intro**)(d + 2));
         if (t2 != 0) {
             skip = intro + 4;
@@ -730,13 +730,13 @@ void func_8015DB80_84D60(Instance* instance) {
         j = 0;
         if (n > 0) {
 loop:
-            if (frame < ((short*)sd)[2]) {
+            if (frame < spline->numkeys) {
                 if (t2 != 0 && frame == skip[0]) {
                     end = frame + skip[1];
                     if (frame < end) {
                         do {
-                            sum += len[0];
-                            len += 0x20 / 2;
+                            sum += (unsigned short)splineKey->count;
+                            splineKey++;
                         } while (++frame < end);
                     }
                     skip += 2;
@@ -745,8 +745,8 @@ loop:
                 (*cur)->instance->work3 = ((short)sum);
                 cur++;
                 frame++;
-                sum += len[0];
-                len += 0x20 / 2;
+                sum += (unsigned short)splineKey->count;
+                splineKey++;
                 if (j < n) {
                     goto loop;
                 }
